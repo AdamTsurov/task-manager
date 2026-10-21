@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { X } from 'lucide-react'
-import type { Task, TaskPriority, TaskStatus } from '../../shared/types/task'
+import type { Task, TaskPriority, TaskStatus } from '../../../entities/task/model/types'
 
 interface TaskModalProps {
   isOpen: boolean
