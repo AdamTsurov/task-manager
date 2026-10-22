@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { AlertCircle } from 'lucide-react'
 import type { Task, TaskPriority, TaskStatus } from '../../../entities/task/model/types'
-import { useTaskStore } from '../../../entities/task/model/useTaskStore'
+import { useTasksQuery } from '../../../entities/task/api/taskQueries'
+import { useTaskMutations } from '../../../entities/task/api/useTaskMutations'
 import { FilterBar } from '../../../features/filter-tasks/ui/FilterBar'
 import { TaskModal } from '../../../features/manage-task/ui/TaskModal'
 import Header from '../../../widgets/header/Header/ui/Header'
@@ -9,25 +10,24 @@ import KanbanBoard from '../../../widgets/kanban-board/ui/KanbanBoard'
 import Loader from '../../../shared/ui/Loader/Loader'
 
 export default function BoardPage() {
-  const {
-    tasks,
-    loading,
-    error,
-    search,
-    priorityFilter,
-    fetchTasks,
-    createTask,
-    updateTask,
-    changeStatus,
-    resetFilters,
-  } = useTaskStore()
-
+  const [search, setSearch] = useState('')
+  const [priorityFilter, setPriorityFilter] = useState<TaskPriority | 'all'>('all')
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingTask, setEditingTask] = useState<Task | null>(null)
 
-  useEffect(() => {
-    fetchTasks()
-  }, [fetchTasks])
+  const {
+    data: tasks = [],
+    isPending,
+    error,
+    refetch,
+  } = useTasksQuery()
+
+  const { createTask, updateTask, changeStatus } = useTaskMutations()
+
+  const resetFilters = () => {
+    setSearch('')
+    setPriorityFilter('all')
+  }
 
   const handleModalSubmit = async (taskData: {
     title: string
@@ -40,6 +40,9 @@ export default function BoardPage() {
     } else {
       await createTask(taskData)
     }
+
+    setIsModalOpen(false)
+    setEditingTask(null)
   }
 
   const handleEditTask = (task: Task) => {
@@ -48,25 +51,42 @@ export default function BoardPage() {
   }
 
   const filteredTasks = useMemo(() => {
-    return tasks.filter((t) => {
-      const matchesSearch = t.title.toLowerCase().includes(search.toLowerCase())
-      const matchesPriority = priorityFilter === 'all' || t.priority === priorityFilter
+    return tasks.filter((task) => {
+      const matchesSearch = task.title.toLowerCase().includes(search.toLowerCase())
+      const matchesPriority =
+        priorityFilter === 'all' || task.priority === priorityFilter
+
       return matchesSearch && matchesPriority
     })
   }, [tasks, search, priorityFilter])
 
-  const todoTasks = useMemo(() => filteredTasks.filter((t) => t.status === 'todo'), [filteredTasks])
-  const inProgressTasks = useMemo(
-    () => filteredTasks.filter((t) => t.status === 'in_progress'),
-    [filteredTasks]
+  const todoTasks = useMemo(
+    () => filteredTasks.filter((task) => task.status === 'todo'),
+    [filteredTasks],
   )
-  const doneTasks = useMemo(() => filteredTasks.filter((t) => t.status === 'done'), [filteredTasks])
+
+  const inProgressTasks = useMemo(
+    () => filteredTasks.filter((task) => task.status === 'in_progress'),
+    [filteredTasks],
+  )
+
+  const doneTasks = useMemo(
+    () => filteredTasks.filter((task) => task.status === 'done'),
+    [filteredTasks],
+  )
+
+  const hasActiveFilters = search.trim() !== '' || priorityFilter !== 'all'
 
   return (
     <>
       <Header />
 
       <FilterBar
+        search={search}
+        priorityFilter={priorityFilter}
+        onSearchChange={setSearch}
+        onPriorityChange={setPriorityFilter}
+        onResetFilters={resetFilters}
         onOpenCreateModal={() => {
           setEditingTask(null)
           setIsModalOpen(true)
@@ -74,29 +94,56 @@ export default function BoardPage() {
       />
 
       {error && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl flex items-center gap-3">
+        <div
+          role="alert"
+          className="mb-6 flex items-center gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-red-700"
+        >
           <AlertCircle size={20} className="shrink-0" />
-          <div className="flex-1 text-sm">{error}</div>
+
+          <div className="flex-1 text-sm">
+            {error.message || 'Не удалось загрузить задачи'}
+          </div>
+
           <button
-            onClick={fetchTasks}
-            className="text-xs bg-red-100 hover:bg-red-200 font-semibold px-3 py-1.5 rounded-lg transition"
+            type="button"
+            onClick={() => void refetch()}
+            className="rounded-lg bg-red-100 px-3 py-1.5 text-xs font-semibold transition hover:bg-red-200"
           >
             Повторить
           </button>
         </div>
       )}
 
-      {loading ? (
+      {isPending ? (
         <Loader />
-      ) : filteredTasks.length === 0 && tasks.length > 0 ? (
-        <div className="text-center py-16 bg-white rounded-2xl border border-slate-200">
-          <p className="text-slate-500 font-medium">Задачи по заданным фильтрам не найдены</p>
-          <button
-            onClick={resetFilters}
-            className="mt-3 text-sm text-indigo-600 hover:underline font-semibold"
-          >
-            Сбросить фильтры
-          </button>
+      ) : filteredTasks.length === 0 ? (
+        <div className="rounded-2xl border border-slate-200 bg-white py-16 text-center">
+          <p className="font-medium text-slate-500">
+            {hasActiveFilters
+              ? 'Задачи по заданным фильтрам не найдены'
+              : 'Пока нет задач'}
+          </p>
+
+          {hasActiveFilters ? (
+            <button
+              type="button"
+              onClick={resetFilters}
+              className="mt-3 text-sm font-semibold text-indigo-600 hover:underline"
+            >
+              Сбросить фильтры
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => {
+                setEditingTask(null)
+                setIsModalOpen(true)
+              }}
+              className="mt-3 text-sm font-semibold text-indigo-600 hover:underline"
+            >
+              Создать первую задачу
+            </button>
+          )}
         </div>
       ) : (
         <KanbanBoard

@@ -1,17 +1,28 @@
+
 import React from 'react'
 import { RotateCcw, Plus } from 'lucide-react'
-import { useTaskStore } from '../../../entities/task/model/useTaskStore'
 import type { TaskPriority } from '../../../entities/task/model/types'
 import SearchInput from '../../../shared/ui/SearchInput/SearchInput'
 import { Select } from '../../../shared/ui/Select/Select'
 import { Button } from '../../../shared/ui/Button/Button'
 
 interface FilterBarProps {
+  search: string
+  priorityFilter: TaskPriority | 'all'
+  onSearchChange: (value: string) => void
+  onPriorityChange: (priority: TaskPriority | 'all') => void
+  onResetFilters: () => void
   onOpenCreateModal: () => void
 }
 
-export const FilterBar: React.FC<FilterBarProps> = ({ onOpenCreateModal }) => {
-  const { search, priorityFilter, setSearch, setPriorityFilter, resetFilters } = useTaskStore()
+export const FilterBar: React.FC<FilterBarProps> = ({
+  search,
+  priorityFilter,
+  onSearchChange,
+  onPriorityChange,
+  onResetFilters,
+  onOpenCreateModal,
+}) => {
   const isFiltered = search !== '' || priorityFilter !== 'all'
 
   const priorityOptions = [
@@ -24,11 +35,16 @@ export const FilterBar: React.FC<FilterBarProps> = ({ onOpenCreateModal }) => {
   return (
     <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-200 mb-6 flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
       <div className="flex flex-col sm:flex-row gap-3 flex-1">
-        <SearchInput value={search} onChange={(e) => setSearch(e.target.value)} />
+        <SearchInput
+          value={search}
+          onChange={(event) => onSearchChange(event.target.value)}
+        />
 
         <Select
           value={priorityFilter}
-          onChange={(event) => setPriorityFilter(event.target.value as TaskPriority | 'all')}
+          onChange={(event) =>
+            onPriorityChange(event.target.value as TaskPriority | 'all')
+          }
           options={priorityOptions}
           aria-label="Фильтр по приоритету"
           className="sm:w-48"
@@ -36,7 +52,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({ onOpenCreateModal }) => {
 
         {isFiltered && (
           <Button
-            onClick={resetFilters}
+            onClick={onResetFilters}
             icon={<RotateCcw size={15} />}
             className="border border-slate-300 text-slate-600 hover:text-slate-900 hover:bg-slate-50"
           >

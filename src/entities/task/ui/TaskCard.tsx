@@ -1,8 +1,8 @@
 import React, { useState, type ReactNode } from 'react'
 import { Pencil, Trash2, Calendar } from 'lucide-react'
 import type { Task, TaskPriority, TaskStatus } from '../model/types'
-import { useTaskStore } from '../model/useTaskStore'
-
+import { useTaskMutations } from '../api/useTaskMutations'
+import { Select } from '../../../shared/ui/Select/Select'
 interface TaskCardProps {
   task: Task
   onEdit: (task: Task) => void
@@ -17,13 +17,24 @@ const priorityStyles: Record<TaskPriority, { bg: string; text: string; label: st
 
 export const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, dragHandle }) => {
   const [showConfirm, setShowConfirm] = useState(false)
-  const { deleteTask, changeStatus } = useTaskStore()
+  const { deleteTask, changeStatus, isDeleting } = useTaskMutations()
   const priorityInfo = priorityStyles[task.priority]
 
   const formattedDate = new Date(task.createdAt).toLocaleDateString('ru-RU', {
     day: 'numeric',
     month: 'short',
   })
+
+  const handleDelete = async () => {
+    if (isDeleting) return
+
+    try {
+      await deleteTask(task.id)
+      setShowConfirm(false)
+    } catch {
+      alert('Не удалось удалить задачу')
+    }
+  }
 
   return (
     <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-200 hover:shadow-md transition">
@@ -59,9 +70,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, dragHandle }) 
         </div>
       </div>
 
-      <h3 className="font-semibold text-slate-800 mb-1 leading-snug break-words">
-        {task.title}
-      </h3>
+      <h3 className="font-semibold text-slate-800 mb-1 leading-snug break-words">{task.title}</h3>
 
       {task.description && (
         <p className="text-sm text-slate-600 mb-3 whitespace-pre-wrap break-words">
@@ -75,16 +84,21 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, dragHandle }) 
           <span>{formattedDate}</span>
         </div>
 
-        <select
+        <Select
           aria-label="Статус задачи"
           value={task.status}
-          onChange={(e) => changeStatus(task.id, e.target.value as TaskStatus)}
-          className="text-xs bg-slate-50 border border-slate-200 rounded px-1.5 py-1 text-slate-700 font-medium cursor-pointer"
-        >
-          <option value="todo">To Do</option>
-          <option value="in_progress">In Progress</option>
-          <option value="done">Done</option>
-        </select>
+          onChange={(event) => {
+            void changeStatus(task.id, event.target.value as TaskStatus).catch(() => {
+              alert('Не удалось обновить статус задачи')
+            })
+          }}
+          options={[
+            { value: 'todo', label: 'To Do' },
+            { value: 'in_progress', label: 'In Progress' },
+            { value: 'done', label: 'Done' },
+          ]}
+          className="w-auto max-w-[140px] cursor-pointer border-slate-200 bg-slate-50 px-1.5 py-1 text-xs font-medium text-slate-700"
+        />
       </div>
 
       {showConfirm && (
@@ -102,10 +116,8 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, dragHandle }) 
 
             <button
               type="button"
-              onClick={() => {
-                deleteTask(task.id)
-                setShowConfirm(false)
-              }}
+              disabled={isDeleting}
+              onClick={() => void handleDelete()}
               className="px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700 font-medium"
             >
               Удалить
