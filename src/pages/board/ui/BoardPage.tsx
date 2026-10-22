@@ -18,6 +18,7 @@ export default function BoardPage() {
     fetchTasks,
     createTask,
     updateTask,
+    changeStatus,
     resetFilters,
   } = useTaskStore()
 
@@ -100,9 +101,10 @@ export default function BoardPage() {
       ) : (
         <KanbanBoard
           todoTasks={todoTasks}
-          handleEditTask={handleEditTask}
           inProgressTasks={inProgressTasks}
           doneTasks={doneTasks}
+          handleEditTask={handleEditTask}
+          onTaskStatusChange={changeStatus}
         />
       )}
 

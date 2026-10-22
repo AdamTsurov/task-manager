@@ -1,6 +1,9 @@
-import React from 'react'
-import type { Task, TaskStatus } from '../../../entities/task/model/types'
-import { TaskCard } from '../../../entities/task/ui/TaskCard'
+import type { Task, TaskStatus } from "../../../entities/task/model/types"
+import { TaskCard } from "../../../entities/task/ui/TaskCard"
+import { useDragDrop } from "../../../shared/ui/drag-and-drop/model/DragDropContext"
+import { Draggable } from "../../../shared/ui/drag-and-drop/ui/Draggable"
+import { DragHandle } from "../../../shared/ui/drag-and-drop/ui/DragHandle"
+
 
 interface KanbanColumnProps {
   title: string
@@ -15,11 +18,31 @@ const statusBadgeColors: Record<TaskStatus, string> = {
   done: 'bg-emerald-100 text-emerald-800',
 }
 
-export const KanbanColumn: React.FC<KanbanColumnProps> = ({ title, status, tasks, onEdit }) => {
+export const KanbanColumn = ({
+  title,
+  status,
+  tasks,
+  onEdit,
+}: KanbanColumnProps) => {
+  const { activeTaskId, overStatus } = useDragDrop()
+
+  const isDropTarget =
+    activeTaskId !== null && overStatus === status
+
   return (
-    <div className="bg-slate-50/70 border border-slate-200/80 rounded-2xl p-4 flex flex-col min-h-[500px]">
+    <div
+      data-drop-zone-status={status}
+      className={`min-h-[500px] rounded-2xl border p-4 flex flex-col
+        transition-colors
+        ${
+          isDropTarget
+            ? 'border-indigo-400 bg-indigo-50'
+            : 'border-slate-200/80 bg-slate-50/70'
+        }`}
+    >
       <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-200">
         <h2 className="font-bold text-slate-800 text-base">{title}</h2>
+
         <span
           className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${statusBadgeColors[status]}`}
         >
@@ -29,11 +52,28 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({ title, status, tasks
 
       <div className="space-y-3 flex-1 overflow-y-auto">
         {tasks.length === 0 ? (
-          <div className="h-32 flex items-center justify-center border-2 border-dashed border-slate-200 rounded-xl text-xs text-slate-400">
-            Нет задач
+          <div
+            className={`h-32 flex items-center justify-center border-2 border-dashed rounded-xl text-xs
+              ${
+                isDropTarget
+                  ? 'border-indigo-300 text-indigo-500'
+                  : 'border-slate-200 text-slate-400'
+              }`}
+          >
+            {isDropTarget ? 'Отпустите задачу здесь' : 'Нет задач'}
           </div>
         ) : (
-          tasks.map((task) => <TaskCard key={task.id} task={task} onEdit={onEdit} />)
+          tasks.map((task) => (
+            <Draggable key={task.id} taskId={task.id}>
+              <TaskCard
+                task={task}
+                onEdit={onEdit}
+                dragHandle={
+                  <DragHandle taskId={task.id} status={status} />
+                }
+              />
+            </Draggable>
+          ))
         )}
       </div>
     </div>

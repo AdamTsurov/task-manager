@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, type ReactNode } from 'react'
 import { Pencil, Trash2, Calendar } from 'lucide-react'
 import type { Task, TaskPriority, TaskStatus } from '../model/types'
 import { useTaskStore } from '../model/useTaskStore'
@@ -6,6 +6,7 @@ import { useTaskStore } from '../model/useTaskStore'
 interface TaskCardProps {
   task: Task
   onEdit: (task: Task) => void
+  dragHandle?: ReactNode
 }
 
 const priorityStyles: Record<TaskPriority, { bg: string; text: string; label: string }> = {
@@ -14,7 +15,7 @@ const priorityStyles: Record<TaskPriority, { bg: string; text: string; label: st
   high: { bg: 'bg-red-100', text: 'text-red-800', label: 'Высокий' },
 }
 
-export const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit }) => {
+export const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, dragHandle }) => {
   const [showConfirm, setShowConfirm] = useState(false)
   const { deleteTask, changeStatus } = useTaskStore()
   const priorityInfo = priorityStyles[task.priority]
@@ -26,31 +27,42 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit }) => {
 
   return (
     <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-200 hover:shadow-md transition">
-      <div className="flex justify-between items-start gap-2 mb-2">
+      <div className="flex items-start gap-2 mb-2">
+        {dragHandle}
+
         <span
           className={`text-xs px-2.5 py-1 rounded-full font-medium ${priorityInfo.bg} ${priorityInfo.text}`}
         >
           {priorityInfo.label}
         </span>
-        <div className="flex items-center gap-1">
+
+        <div className="flex items-center gap-1 ml-auto">
           <button
+            type="button"
             onClick={() => onEdit(task)}
             className="p-1 text-slate-400 hover:text-indigo-600 transition"
             title="Редактировать"
+            aria-label="Редактировать задачу"
           >
             <Pencil size={15} />
           </button>
+
           <button
+            type="button"
             onClick={() => setShowConfirm(true)}
             className="p-1 text-slate-400 hover:text-red-600 transition"
             title="Удалить"
+            aria-label="Удалить задачу"
           >
             <Trash2 size={15} />
           </button>
         </div>
       </div>
 
-      <h3 className="font-semibold text-slate-800 mb-1 leading-snug break-words">{task.title}</h3>
+      <h3 className="font-semibold text-slate-800 mb-1 leading-snug break-words">
+        {task.title}
+      </h3>
+
       {task.description && (
         <p className="text-sm text-slate-600 mb-3 whitespace-pre-wrap break-words">
           {task.description}
@@ -64,6 +76,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit }) => {
         </div>
 
         <select
+          aria-label="Статус задачи"
           value={task.status}
           onChange={(e) => changeStatus(task.id, e.target.value as TaskStatus)}
           className="text-xs bg-slate-50 border border-slate-200 rounded px-1.5 py-1 text-slate-700 font-medium cursor-pointer"
@@ -77,14 +90,18 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit }) => {
       {showConfirm && (
         <div className="mt-3 p-2 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700">
           <p className="font-medium mb-1.5">Удалить эту задачу?</p>
+
           <div className="flex justify-end gap-2">
             <button
+              type="button"
               onClick={() => setShowConfirm(false)}
               className="px-2 py-1 bg-white border border-slate-200 rounded hover:bg-slate-50 text-slate-700"
             >
               Отмена
             </button>
+
             <button
+              type="button"
               onClick={() => {
                 deleteTask(task.id)
                 setShowConfirm(false)
