@@ -9,9 +9,9 @@ interface KanbanBoardProps {
   doneTasks: Task[]
   handleEditTask: (task: Task) => void
   onTaskStatusChange: (
-    taskId: number,
+    id: number,
     status: TaskStatus,
-  ) => Promise<void>
+  ) => Promise<Task>
 }
 
 const KanbanBoard = ({

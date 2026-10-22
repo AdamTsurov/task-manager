@@ -1,4 +1,3 @@
-
 import {
   createContext,
   useContext,
@@ -6,13 +5,13 @@ import {
   useState,
   type ReactNode,
 } from 'react'
-import type { TaskStatus } from '../../../../entities/task/model/types'
+import type { Task, TaskStatus } from '../../../../entities/task/model/types'
 
 interface DragDropContextValue {
   activeTaskId: number | null
   sourceStatus: TaskStatus | null
   overStatus: TaskStatus | null
-  startDrag: (taskId: number, status: TaskStatus) => void
+  startDrag: (id: number, status: TaskStatus) => void
   cancelDrag: () => void
 }
 
@@ -20,7 +19,7 @@ const DragDropContext = createContext<DragDropContextValue | null>(null)
 
 interface DragDropProviderProps {
   children: ReactNode
-  onDrop: (taskId: number, status: TaskStatus) => void | Promise<void>
+  onDrop: (id: number, status: TaskStatus) => Promise<Task>
 }
 
 export const DragDropProvider = ({
