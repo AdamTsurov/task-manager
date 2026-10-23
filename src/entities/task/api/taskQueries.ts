@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { tasksApi } from '../../../shared/api/tasksApi'
+import { tasksApi } from './tasksApi'
 
 export const taskKeys = {
   all: ['tasks'] as const,

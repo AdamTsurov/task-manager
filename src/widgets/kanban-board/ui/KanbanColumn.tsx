@@ -1,9 +1,8 @@
-import type { Task, TaskStatus } from "../../../entities/task/model/types"
-import { TaskCard } from "../../../entities/task/ui/TaskCard"
-import { useDragDrop } from "../../../shared/ui/drag-and-drop/model/DragDropContext"
-import { Draggable } from "../../../shared/ui/drag-and-drop/ui/Draggable"
-import { DragHandle } from "../../../shared/ui/drag-and-drop/ui/DragHandle"
-
+import type { Task, TaskStatus } from '../../../entities/task/model/types'
+import { TaskCard } from '../../../entities/task/ui/TaskCard'
+import { useDragDrop } from '../../../features/drag-and-drop-task/model/DragDropContext'
+import { Draggable } from '../../../features/drag-and-drop-task/ui/Draggable'
+import { DragHandle } from '../../../features/drag-and-drop-task/ui/DragHandle'
 
 interface KanbanColumnProps {
   title: string
@@ -18,27 +17,17 @@ const statusBadgeColors: Record<TaskStatus, string> = {
   done: 'bg-emerald-100 text-emerald-800',
 }
 
-export const KanbanColumn = ({
-  title,
-  status,
-  tasks,
-  onEdit,
-}: KanbanColumnProps) => {
+export const KanbanColumn = ({ title, status, tasks, onEdit }: KanbanColumnProps) => {
   const { activeTaskId, overStatus } = useDragDrop()
 
-  const isDropTarget =
-    activeTaskId !== null && overStatus === status
+  const isDropTarget = activeTaskId !== null && overStatus === status
 
   return (
     <div
       data-drop-zone-status={status}
       className={`min-h-[500px] rounded-2xl border p-4 flex flex-col
         transition-colors
-        ${
-          isDropTarget
-            ? 'border-indigo-400 bg-indigo-50'
-            : 'border-slate-200/80 bg-slate-50/70'
-        }`}
+        ${isDropTarget ? 'border-indigo-400 bg-indigo-50' : 'border-slate-200/80 bg-slate-50/70'}`}
     >
       <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-200">
         <h2 className="font-bold text-slate-800 text-base">{title}</h2>
@@ -68,9 +57,7 @@ export const KanbanColumn = ({
               <TaskCard
                 task={task}
                 onEdit={onEdit}
-                dragHandle={
-                  <DragHandle taskId={task.id} status={status} />
-                }
+                dragHandle={<DragHandle taskId={task.id} status={status} />}
               />
             </Draggable>
           ))

@@ -1,11 +1,5 @@
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  type ReactNode,
-} from 'react'
-import type { Task, TaskStatus } from '../../../../entities/task/model/types'
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
+import type { Task, TaskStatus } from '../../../entities/task/model/types'
 
 interface DragDropContextValue {
   activeTaskId: number | null
@@ -22,10 +16,7 @@ interface DragDropProviderProps {
   onDrop: (id: number, status: TaskStatus) => Promise<Task>
 }
 
-export const DragDropProvider = ({
-  children,
-  onDrop,
-}: DragDropProviderProps) => {
+export const DragDropProvider = ({ children, onDrop }: DragDropProviderProps) => {
   const [activeTaskId, setActiveTaskId] = useState<number | null>(null)
   const [sourceStatus, setSourceStatus] = useState<TaskStatus | null>(null)
   const [overStatus, setOverStatus] = useState<TaskStatus | null>(null)
@@ -51,11 +42,7 @@ export const DragDropProvider = ({
 
       const status = zone?.dataset.dropZoneStatus
 
-      if (
-        status === 'todo' ||
-        status === 'in_progress' ||
-        status === 'done'
-      ) {
+      if (status === 'todo' || status === 'in_progress' || status === 'done') {
         return status
       }
 

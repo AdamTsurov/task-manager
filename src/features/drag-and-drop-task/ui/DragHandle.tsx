@@ -1,6 +1,5 @@
-
 import { GripVertical } from 'lucide-react'
-import type { TaskStatus } from '../../../../entities/task/model/types'
+import type { TaskStatus } from '../../../entities/task/model/types'
 import { useDragDrop } from '../model/DragDropContext'
 
 interface DragHandleProps {

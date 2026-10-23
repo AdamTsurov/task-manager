@@ -1,17 +1,13 @@
-import type { Task, TaskStatus } from "../../../entities/task/model/types"
-import { DragDropProvider } from "../../../shared/ui/drag-and-drop/model/DragDropContext"
-import { KanbanColumn } from "./KanbanColumn"
-
+import type { Task, TaskStatus } from '../../../entities/task/model/types'
+import { DragDropProvider } from '../../../features/drag-and-drop-task/model/DragDropContext'
+import { KanbanColumn } from './KanbanColumn'
 
 interface KanbanBoardProps {
   todoTasks: Task[]
   inProgressTasks: Task[]
   doneTasks: Task[]
   handleEditTask: (task: Task) => void
-  onTaskStatusChange: (
-    id: number,
-    status: TaskStatus,
-  ) => Promise<Task>
+  onTaskStatusChange: (id: number, status: TaskStatus) => Promise<Task>
 }
 
 const KanbanBoard = ({
@@ -24,12 +20,7 @@ const KanbanBoard = ({
   return (
     <DragDropProvider onDrop={onTaskStatusChange}>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <KanbanColumn
-          title="To Do"
-          status="todo"
-          tasks={todoTasks}
-          onEdit={handleEditTask}
-        />
+        <KanbanColumn title="To Do" status="todo" tasks={todoTasks} onEdit={handleEditTask} />
 
         <KanbanColumn
           title="In Progress"
@@ -38,12 +29,7 @@ const KanbanBoard = ({
           onEdit={handleEditTask}
         />
 
-        <KanbanColumn
-          title="Done"
-          status="done"
-          tasks={doneTasks}
-          onEdit={handleEditTask}
-        />
+        <KanbanColumn title="Done" status="done" tasks={doneTasks} onEdit={handleEditTask} />
       </div>
     </DragDropProvider>
   )

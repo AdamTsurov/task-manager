@@ -1,5 +1,5 @@
 import axios from 'axios'
-import type { CreateTaskDto, Task, UpdateTaskDto } from '../../entities/task/model/types'
+import type { CreateTaskDto, Task, UpdateTaskDto } from '../model/types'
 
 const API_URL = import.meta.env.VITE_API_BASE_URL
 

@@ -1,11 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { tasksApi } from '../../../shared/api/tasksApi'
-import type {
-  CreateTaskDto,
-  Task,
-  TaskStatus,
-  UpdateTaskDto,
-} from '../model/types'
+import { tasksApi } from './tasksApi'
+import type { CreateTaskDto, Task, TaskStatus, UpdateTaskDto } from '../model/types'
 import { taskKeys } from './taskQueries'
 
 export const useTaskMutations = () => {
@@ -16,20 +11,17 @@ export const useTaskMutations = () => {
 
     onSuccess: (createdTask) => {
       queryClient.setQueryData<Task[]>(taskKeys.all, (oldTasks) =>
-        oldTasks ? [...oldTasks, createdTask] : oldTasks,
+        oldTasks ? [...oldTasks, createdTask] : oldTasks
       )
     },
   })
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, dto }: { id: number; dto: UpdateTaskDto }) =>
-      tasksApi.updateTask(id, dto),
+    mutationFn: ({ id, dto }: { id: number; dto: UpdateTaskDto }) => tasksApi.updateTask(id, dto),
 
     onSuccess: (updatedTask) => {
       queryClient.setQueryData<Task[]>(taskKeys.all, (oldTasks) =>
-        oldTasks?.map((task) =>
-          task.id === updatedTask.id ? updatedTask : task,
-        ),
+        oldTasks?.map((task) => (task.id === updatedTask.id ? updatedTask : task))
       )
     },
   })
@@ -39,7 +31,7 @@ export const useTaskMutations = () => {
 
     onSuccess: (_data, deletedId) => {
       queryClient.setQueryData<Task[]>(taskKeys.all, (oldTasks) =>
-        oldTasks?.filter((task) => task.id !== deletedId),
+        oldTasks?.filter((task) => task.id !== deletedId)
       )
     },
   })
@@ -47,8 +39,7 @@ export const useTaskMutations = () => {
   return {
     createTask: (dto: CreateTaskDto) => createMutation.mutateAsync(dto),
 
-    updateTask: (id: number, dto: UpdateTaskDto) =>
-      updateMutation.mutateAsync({ id, dto }),
+    updateTask: (id: number, dto: UpdateTaskDto) => updateMutation.mutateAsync({ id, dto }),
 
     deleteTask: (id: number) => deleteMutation.mutateAsync(id),
 
